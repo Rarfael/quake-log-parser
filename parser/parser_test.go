@@ -38,3 +38,47 @@ func TestParseLogFile(t *testing.T) {
 		t.Errorf("Expected 2 kills by MOD_TRIGGER_HURT, got %d", count)
 	}
 }
+
+func TestParseLogFile_MultipleGames(t *testing.T) {
+	logData := `
+0:00 InitGame:
+0:20 Kill: 3 2 7: Zeh killed Isgalamido by MOD_ROCKET
+1:00 InitGame:
+1:20 Kill: 2 3 10: Isgalamido killed Zeh by MOD_RAILGUN
+1:50 Kill: 2 3 10: Isgalamido killed Zeh by MOD_RAILGUN
+`
+	file := strings.NewReader(logData)
+
+	parser := NewGameParser()
+	games := parser.ParseLogFile(file)
+
+	if len(games) != 2 {
+		t.Fatalf("Expected 2 games, got %d", len(games))
+	}
+
+	game1 := games[0]
+	if game1.TotalKills != 1 {
+		t.Errorf("Expected 1 total kill in game 1, got %d", game1.TotalKills)
+	}
+	if player, exists := game1.Players["Zeh"]; !exists {
+		t.Errorf("Expected player 'Zeh' to be in game 1")
+	} else if player.Kills != 1 {
+		t.Errorf("Expected 1 kill for Zeh in game 1, got %d", player.Kills)
+	}
+	if count, exists := game1.KillsByMeans["MOD_ROCKET"]; !exists || count != 1 {
+		t.Errorf("Expected 1 kill by MOD_ROCKET in game 1, got %d", count)
+	}
+
+	game2 := games[1]
+	if game2.TotalKills != 2 {
+		t.Errorf("Expected 2 total kills in game 2, got %d", game2.TotalKills)
+	}
+	if player, exists := game2.Players["Isgalamido"]; !exists {
+		t.Errorf("Expected player 'Isgalamido' to be in game 2")
+	} else if player.Kills != 2 {
+		t.Errorf("Expected 2 kills for Isgalamido in game 2, got %d", player.Kills)
+	}
+	if count, exists := game2.KillsByMeans["MOD_RAILGUN"]; !exists || count != 2 {
+		t.Errorf("Expected 2 kills by MOD_RAILGUN in game 2, got %d", count)
+	}
+}
