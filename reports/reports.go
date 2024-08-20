@@ -16,7 +16,6 @@ func GenerateReports(games []parser.Game) {
 		fmt.Fprintf(stdOut, "\"game_%d\": {\n", gameNumber)
 		fmt.Fprintf(stdOut, "  \"total_kills\": %d,\n", game.TotalKills)
 
-		// Collect and sort player names
 		playerNames := make([]string, 0, len(game.Players))
 		for _, player := range game.Players {
 			playerNames = append(playerNames, player.Name)
@@ -28,7 +27,6 @@ func GenerateReports(games []parser.Game) {
 		}
 		fmt.Fprintf(stdOut, "],\n")
 
-		// Print kills per player
 		fmt.Fprintf(stdOut, "  \"kills\": {\n")
 		first := true
 		for _, playerName := range playerNames {
@@ -37,6 +35,17 @@ func GenerateReports(games []parser.Game) {
 				fmt.Fprintf(stdOut, ",\n")
 			}
 			fmt.Fprintf(stdOut, "    \"%s\": %d", player.Name, player.Kills)
+			first = false
+		}
+		fmt.Fprintf(stdOut, "\n  },\n")
+
+		fmt.Fprintf(stdOut, "  \"kills_by_means\": {\n")
+		first = true
+		for means, count := range game.KillsByMeans {
+			if !first {
+				fmt.Fprintf(stdOut, ",\n")
+			}
+			fmt.Fprintf(stdOut, "    \"%s\": %d", means, count)
 			first = false
 		}
 		fmt.Fprintf(stdOut, "\n  }\n")
