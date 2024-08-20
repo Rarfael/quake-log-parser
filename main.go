@@ -1,9 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
+
+	"github.dom/Rarfael/quake-log-parser/parser"
+	"github.dom/Rarfael/quake-log-parser/reports"
 )
 
 func main() {
@@ -12,5 +14,8 @@ func main() {
 		log.Fatalf("Failed to open file: %s", err)
 	}
 	defer file.Close()
-	fmt.Println("File opened successfully")
+	gameParser := parser.NewGameParser()
+	games := gameParser.ParseLogFile(file)
+
+	reports.GenerateReports(games)
 }
