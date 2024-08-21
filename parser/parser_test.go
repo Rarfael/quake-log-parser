@@ -82,3 +82,33 @@ func TestParseLogFile_MultipleGames(t *testing.T) {
 		t.Errorf("Expected 2 kills by MOD_RAILGUN in game 2, got %d", count)
 	}
 }
+
+func TestParseLogFile_NoKills(t *testing.T) {
+	logData := `
+0:00 InitGame:
+1:00 ClientUserinfoChanged: 2 n\Isgalamido\t\0\model\xian/default
+2:00 ClientUserinfoChanged: 3 n\Zeh\t\0\model\uriel/default
+`
+	file := strings.NewReader(logData)
+
+	// Create an instance of GameParser
+	parser := NewGameParser()
+	games := parser.ParseLogFile(file)
+
+	if len(games) != 1 {
+		t.Fatalf("Expected 1 game, got %d", len(games))
+	}
+
+	game := games[0]
+	if game.TotalKills != 0 {
+		t.Errorf("Expected 0 total kills, got %d", game.TotalKills)
+	}
+
+	if len(game.Players) != 2 {
+		t.Errorf("Expected 2 players, got %d", len(game.Players))
+	}
+
+	if _, exists := game.KillsByMeans["MOD_ROCKET"]; exists {
+		t.Errorf("Expected no kills by MOD_ROCKET, but found one")
+	}
+}
