@@ -112,3 +112,34 @@ func TestParseLogFile_NoKills(t *testing.T) {
 		t.Errorf("Expected no kills by MOD_ROCKET, but found one")
 	}
 }
+
+func TestParseLogFile_WorldKillsPlayer(t *testing.T) {
+	logData := `
+0:00 InitGame:
+0:30 Kill: 1022 2 22: <world> killed Isgalamido by MOD_TRIGGER_HURT
+`
+	file := strings.NewReader(logData)
+
+	// Create an instance of GameParser
+	parser := NewGameParser()
+	games := parser.ParseLogFile(file)
+
+	if len(games) != 1 {
+		t.Fatalf("Expected 1 game, got %d", len(games))
+	}
+
+	game := games[0]
+	if game.TotalKills != 1 {
+		t.Errorf("Expected 1 total kill, got %d", game.TotalKills)
+	}
+
+	if player, exists := game.Players["Isgalamido"]; !exists {
+		t.Errorf("Expected player 'Isgalamido' to be in the game")
+	} else if player.Kills != -1 {
+		t.Errorf("Expected -1 kills for Isgalamido, got %d", player.Kills)
+	}
+
+	if count, exists := game.KillsByMeans["MOD_TRIGGER_HURT"]; !exists || count != 1 {
+		t.Errorf("Expected 1 kill by MOD_TRIGGER_HURT, got %d", count)
+	}
+}
